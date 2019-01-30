@@ -1,0 +1,113 @@
+\documentclass{article}
+
+\begin{document}
+
+
+20 Equally spaced points, first=0, last=20
+
+Why aren't these 0.05 apart?
+
+<<eval=FALSE>>=
+## R code 2.3
+# define grid
+p_grid <- seq( from=0 , to=1 , length.out=20 )
+p_grid
+@
+
+
+Uniform prior
+
+<<eval=FALSE>>=
+# define prior
+prior <- rep( 1 , 20 )
+prior
+@
+
+likelihood
+
+<<eval=FALSE>>=
+# compute likelihood at each value in grid
+likelihood <- dbinom( 6 , size=9 , prob=p_grid )
+likelihood
+@
+
+In general,
+\[
+f(\theta|D) \propto f(D|\theta)\cdot f(\theta)
+\]
+<<eval=FALSE>>=
+# compute product of likelihood and prior
+unstd.posterior <- likelihood * prior
+unstd.posterior
+@
+
+Normalize the posterior.  This was the computational stumbling block before MCMC.  This example is one of the few you can do analytically.
+
+<<eval=FALSE>>=
+# standardize the posterior, so it sums to 1
+posterior <- unstd.posterior / sum(unstd.posterior)
+posterior
+@
+
+Now plot the normalized posterior distribution of $\theta$
+
+<<eval=FALSE>>=
+## R code 2.4
+plot( p_grid , posterior , type="b" ,
+    xlab="probability of water" , ylab="posterior probability" )
+mtext( "20 points" )
+@
+
+Modified prior
+
+
+<<eval=FALSE>>=
+## R code 2.5
+prior <- ifelse( p_grid < 0.5 , 0 , 1 )
+
+prior
+
+prior <- exp( -5*abs( p_grid - 0.5 ) )
+
+prior
+@
+
+<<eval=FALSE>>=
+# compute product of likelihood and prior
+unstd.posterior <- likelihood * prior
+unstd.posterior
+@
+
+Normalize the posterior.  This was the computational stumbling block before MCMC.  This example is one of the few you can do analytically.
+
+<<eval=FALSE>>=
+# standardize the posterior, so it sums to 1
+posterior <- unstd.posterior / sum(unstd.posterior)
+posterior
+@
+
+Now plot the normalized posterior distribution of $\theta$
+
+<<eval=FALSE>>=
+## R code 2.4
+plot( p_grid , posterior , type="b" ,
+    xlab="probability of water" , ylab="posterior probability" )
+mtext( "20 points" )
+@
+Quadratic approximation
+
+binomial likelihood - 6 successes in 9 trials
+uniform prior
+<<eval=FALSE>>=
+## R code 2.6
+library(rethinking)
+globe.qa <- quap(
+    alist(
+        W ~ dbinom( W+L ,p) ,  # binomial likelihood
+        p ~ dunif(0,1)     # uniform prior
+    ) ,
+    data=list(W=6,L=3) )
+
+globe.qa
+@
+\end{document}
